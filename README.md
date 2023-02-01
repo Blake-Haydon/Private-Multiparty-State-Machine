@@ -24,4 +24,4 @@ The following diagram shows the communication between 2 servers and 1 client. In
 ## **Notebooks**
 
 - [Naive Private State Machine](./naive_private_state_machine.ipynb)
-- [Optimized Private State Machine](./optimized_private_state_machine.ipynb)
+- [Optimised Private State Machine](./optimised_private_state_machine.ipynb)
