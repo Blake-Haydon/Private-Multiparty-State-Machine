@@ -21,6 +21,12 @@ The following diagram shows the communication between 2 servers and 1 client. In
 - **Private State**: Alice and Bob do not know the current state.
 - **Private Input**: Alice and Bob do not know the input.
 
+## **Communication Analysis**
+
+Both the naive and optimised protocols have been analyzed for their communication costs. The following table shows the number of messages that are sent between each participant in the protocol. See full writeup [here](./communication_analysis.md)
+
+<!-- TODO: add table -->
+
 ## **Notebooks**
 
 - [Naive Private State Machine](./naive_private_state_machine.ipynb)
