@@ -32,7 +32,7 @@ class PrivateScalar:
         self.owner = owner
         owner.objects.append(self)
 
-    def share(self, machines, Q=None):
+    def share(self, machines, Q):
         """Split self.value into secret shares and distribute them across machines (tracked in a SharedScalar)."""
         shares = n_to_shares(self.value, machines, Q)
         return SharedScalar(shares, Q)
@@ -45,7 +45,7 @@ class SharedScalar:
     """A class that tracks all secret shares that corresponds to one PrivateScalar.
     It supports *secure* arithmetic with other SharedScalars or integers (+, -, *)."""
 
-    def __init__(self, shares, Q=None):
+    def __init__(self, shares, Q):
         assert all(share.Q == Q for share in shares)
         self.shares = shares
         self.share_of = {share.owner: share for share in shares}

@@ -20,7 +20,7 @@ class Share:
     """A class that represents a secret share that belongs to a machine.
     It supports ring arithmetic with other Shares or integers (+, -, *)."""
 
-    def __init__(self, value, owner, Q=None):
+    def __init__(self, value, owner, Q):
         assert_is_element(value, Q)
         self.value = value
         self.owner = owner
@@ -74,7 +74,7 @@ class Share:
         assert self.Q == other.Q, f"{self} and {other} are not over the same rings."
 
 
-def n_to_shares(n, owners, Q=None):
+def n_to_shares(n, owners, Q):
     """Create additive secret Shares for an integer n, split across a group of machines."""
     # Make sure there are no duplicate owners (technically this is okay, but let's keep it simple)
     assert len(owners) == len(set(owners))
@@ -92,7 +92,7 @@ def n_to_shares(n, owners, Q=None):
     return shares
 
 
-def n_from_shares(shares, owner, Q=None):
+def n_from_shares(shares, owner, Q):
     """Given a list of additive secret Shares, reconstruct the integer value they're hiding."""
     # First, move all shares onto one machine
     local_shares = [share.send_to(owner) for share in shares]

@@ -22,7 +22,7 @@
 # [2] https://math.stackexchange.com/q/3692052/28855
 # [3] https://mortendahl.github.io/2017/09/03/the-spdz-protocol-part1/
 
-from random import randint, randrange
+from random import randrange
 
 # Anywhere in the codebase, if Q is None, that means we're computing with int64s!
 # This is the default behavior. (See the mathematical note above for why.)
@@ -30,36 +30,25 @@ MAX_INT64 = 9223372036854775807
 MIN_INT64 = -9223372036854775808
 
 
-def mod(n, Q=None):
+def mod(n, Q: int):
     """Keeps n inside the finite ring. That is:
     - If we're in a prime ring (Q is the prime size), modulo it by Q
     - If we're in the int64 ring, do the normal int64 overflow behavior
       (we need to explicitly overflow since Python3 ints are unbounded)
     """
-    if Q is not None:
-        return n % Q
-    return (n + MAX_INT64 + 1) % 2**64 - (
-        MAX_INT64 + 1
-    )  # https://stackoverflow.com/a/7771499/908744
+    return n % Q
 
 
-def rand_element(Q=None):
+def rand_element(Q: int):
     """Generates a random int64, or a random integer [0, Q) if Q is specified.
     i.e. an element of the int64 ring, or the size-Q prime ring."""
-    if Q is not None:
-        return randrange(Q)
-    return randint(MIN_INT64, MAX_INT64)
+    return randrange(Q)
 
 
-def assert_is_element(n, Q=None):
+def assert_is_element(n: int, Q: int):
     """Assert that n is a valid int64, or a valid integer mod Q, if Q is provided."""
     val = n if isinstance(n, int) else n.value
-    if Q is None:
-        assert (
-            MIN_INT64 <= val <= MAX_INT64
-        ), f"{n} is not an int64 and cannot be reconstructed. Use a smaller value."
-    else:
-        assert (
-            0 <= val < Q
-        ), f"{n} does not fit inside a size-{Q} prime ring, so it cannot be split into shares that can be \
-              reconstructed. Use a larger Q or a smaller value."
+    assert (
+        0 <= val < Q
+    ), f"{n} does not fit inside a size-{Q} prime ring, so it cannot be split into shares that can be \
+            reconstructed. Use a larger Q or a smaller value."
