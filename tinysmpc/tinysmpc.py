@@ -14,7 +14,7 @@ class VirtualMachine:
     """A very simple class that represents a machine's data.
     It just has a name and owns objects (PrivateScalars and Shares)."""
 
-    def __init__(self, name):
+    def __init__(self, name: str):
         self.name = name
         self.objects = []
 
@@ -27,12 +27,12 @@ class VirtualMachine:
 class PrivateScalar:
     """A class that represents a secret number that belongs to a machine."""
 
-    def __init__(self, value, owner):
+    def __init__(self, value: int, owner: VirtualMachine):
         self.value = value
         self.owner = owner
         owner.objects.append(self)
 
-    def share(self, machines, Q):
+    def share(self, machines: list[VirtualMachine], Q):
         """Split self.value into secret shares and distribute them across machines (tracked in a SharedScalar)."""
         shares = n_to_shares(self.value, machines, Q)
         return SharedScalar(shares, Q)

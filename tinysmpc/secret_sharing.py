@@ -13,6 +13,7 @@
 # [2] https://mortendahl.github.io/2017/06/04/secret-sharing-part1/
 # [3] https://cs.nyu.edu/courses/spring07/G22.3033-013/scribe/lecture01.pdf
 
+import galois
 from .finite_ring import assert_is_element, mod, rand_element
 
 
@@ -25,6 +26,7 @@ class Share:
         self.value = value
         self.owner = owner
         self.Q = Q
+        self.GF = galois.GF(Q)
         owner.objects.append(self)
 
     def send_to(self, owner):
@@ -35,7 +37,9 @@ class Share:
         """Called by: self + other."""
         self._assert_can_operate(other)
         other_value = other if isinstance(other, int) else other.value
-        sum_value = mod(self.value + other_value, self.Q)
+        print("self.value", self.value)
+        print("other_value", other_value)
+        sum_value = int(self.GF(self.value) + self.GF(other_value))
         return Share(sum_value, self.owner, self.Q)
 
     def __radd__(self, other):
@@ -44,7 +48,8 @@ class Share:
 
     def __sub__(self, other):
         """Called by: self - other."""
-        return self.__add__(-1 * other)
+        sub_num = int(-1 * self.GF(other))
+        return self.__add__(sub_num)
 
     def __rsub__(self, other):
         """Called by: other - self (when other is not a Share)."""
@@ -55,6 +60,8 @@ class Share:
         self._assert_can_operate(other)
         other_value = other if isinstance(other, int) else other.value
         prod_value = mod(self.value * other_value, self.Q)
+        print("self.value - mul", self.value)
+        print("other_value - mul", other_value)
         return Share(prod_value, self.owner, self.Q)
 
     def __rmul__(self, other):

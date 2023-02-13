@@ -26,6 +26,7 @@ def mult_2sh(sh1, sh2):
     # Generate a random multiplication triple (public)
     a, b = rand_element(sh1.Q), rand_element(sh1.Q)
     c = mod(a * b, sh1.Q)
+    print(c)
 
     # Share the triple across all machines
     # (It'd be nicer to use the higher-level PrivateScalar.share() here,
