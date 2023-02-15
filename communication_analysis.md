@@ -121,7 +121,7 @@ To evaluate the next multilinear polynomial Alice and Bob must:
                       State + Input Share
    ```
 
-Therefore the communication required to compute the next state share is:
+The communication required to compute the next state share is:
 
 - Sending the Beaver triples (2 integers in the field $S$ per multiplication):
   - To Alice
@@ -133,21 +133,25 @@ Therefore the communication required to compute the next state share is:
   - To Alice
   - To Bob
 
-Therefore for a single multiplication the communication is $2 * 2 + 2*1+ 2*2 = 10$ integers in the field $S$. Thus for this specific example the communication required to compute the next state share is $10 * 10 = 100$ bits over the wire. Because there are approximately $|\Sigma| * |S|$ multiplications that need to be completed (see table in step 4 above) the total communication required to compute the next state share is $|\Sigma| * |S| * 100$ bits which is $256 * 1024 * 100 = 26214400$ bits. This is approximately 3.28 megabytes for a single state transition.
+Therefore for a single multiplication the communication is $2 * 2 + 2 * 1 + 2 * 2 = 10$ integers in the field $S$. Thus for this specific example the communication required to compute the next state share is $10 * 10 = 100$ bits over the wire. Because there are approximately $|\Sigma| * |S|$ multiplications that need to be completed (see table in step 4 above) the total communication required to compute the next state share is $|\Sigma| * |S| * 100$ bits which is $256 * 1024 * 100 = 26214400$ bits. This is approximately 3.28 megabytes for a single state transition.
 
 ### Results
 
-| Action                     | Bits                                                                               |
-| -------------------------- | ---------------------------------------------------------------------------------- |
-| Send input to server       | $2 * 8 = 16$                                                                       |
-| Inter-server communication | $\|\Sigma\| * \|S\| * \log_{2}{\|\Sigma\|} * 10 = 256 * 1024 * 10 * 10 = 26214400$ |
-| Total                      | $16 + 26214400 = 26214416$                                                         |
+| Action                     | Bits                                                                                           |
+| -------------------------- | ---------------------------------------------------------------------------------------------- |
+| Send input to server       | $2 * 8 = 16$                                                                                   |
+| Inter-server communication | $\|\Sigma\| * \|S\| * \lceil\log_{2}{\|\Sigma\|}\rceil * 10 = 256 * 1024 * 10 * 10 = 26214400$ |
+| Total                      | $16 + 26214400 = 26214416$                                                                     |
 
 ## Private State Machine: Optimised Protocol
 
 Similar to the naive protocol, we will be running a state machine on remote servers called Alice and Bob. The client called Charlie will send Alice and Bob send [DPF](https://en.wikipedia.org/wiki/Distributed_point_function) keys of the inputs. This **is** a private state machine as Alice and Bob will not know the current state or Charlie's inputs.
 
 ### Communication: Send Input
+
+Instead of sending a share of the input to each server, we will send a DPF key to each server where the input is the point at which the function is 1. See [this notebook](https://github.com/Blake-Haydon/Distributed-Point-Functions/blob/main/naive_DPF_single_bit.ipynb) for an example of a single bit PDF. The diagram below shows the communication between Charlie, Alice and Bob.
+
+<!-- TODO: put DPF size here. The size is found in the paper "Distributed Point Functions and Their Applications" -->
 
 ```
                  ┌──────────────────┐
@@ -164,8 +168,8 @@ DPF Key 0 │                                │ DPF Key 1
 
 ### Results
 
-| Action                     | Bits                          |
-| -------------------------- | ----------------------------- |
-| Send input to server       | $2 * 8 = 16$                  |
-| Inter-server communication | $\|\Sigma\| * \|S\| 2  = 256$ |
-| Total                      | 8                             |
+| Action                     | Bits                                                                                     |
+| -------------------------- | ---------------------------------------------------------------------------------------- |
+| Send input to server       | $2 * \|\Sigma\| = 2 * 256 = 512$ **(TODO: THIS IS NAIVE, CHANGE TO OPTIMISED DPF KEYS)** |
+| Inter-server communication | $...$                                                                                    |
+| Total                      | $512 + ... = ...$                                                                        |
