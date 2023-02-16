@@ -1,3 +1,19 @@
+- [Communication Analysis](#communication-analysis)
+- [Communication Results](#communication-results)
+  - [State Machine](#state-machine)
+    - [Communication: Send Input](#communication-send-input)
+    - [Communication: Compute Next State](#communication-compute-next-state)
+    - [Results](#results)
+  - [Private State Machine: Naive Protocol](#private-state-machine-naive-protocol)
+    - [Communication: Send Input](#communication-send-input-1)
+    - [Communication: Compute Next State](#communication-compute-next-state-1)
+      - [Communication cost of a multiplication](#communication-cost-of-a-multiplication)
+    - [Results](#results-1)
+  - [Private State Machine: Optimised Protocol](#private-state-machine-optimised-protocol)
+    - [Communication: Send Input](#communication-send-input-2)
+    - [Communication: Compute Next State](#communication-compute-next-state-2)
+    - [Results](#results-2)
+
 # Communication Analysis
 
 For this analysis we will assume that the inputs will all be 8 bits long and there are 1024 different states the machine can be in. The following notation summaries these assumptions:
@@ -6,6 +22,16 @@ For this analysis we will assume that the inputs will all be 8 bits long and the
 
 - $\Sigma = \mathbb{F_{2^8}}$ (input alphabet is the set of all 8 bit strings)
 - $S = \mathbb{F_{2^{10}}}$ (1024 states in the state machine)
+
+# Communication Results
+
+<!-- TODO: use compressed point function -->
+
+| Communication Type | State Machine Bits | Naive Protocol Bits     | Optimised Protocol Bits |
+| ------------------ | ------------------ | ----------------------- | ----------------------- |
+| Send Input         | $8$                | $16$ (x2)               | $512$ (x64)             |
+| Compute Next State | $0$                | $26214400$              | $156000$                |
+| Total              | $8$                | $26214416$ (x3,276,802) | $156512$ (x19,564)      |
 
 ## State Machine
 
@@ -121,6 +147,8 @@ To evaluate the next multilinear polynomial Alice and Bob must:
                       State + Input Share
    ```
 
+#### Communication cost of a multiplication
+
 The communication required to compute the next state share is:
 
 - Sending the Beaver triples (2 integers in the field $S$ per multiplication):
@@ -137,11 +165,11 @@ Therefore for a single multiplication the communication is $2 * 2 + 2 * 1 + 2 * 
 
 ### Results
 
-| Action                     | Bits                                                                                           |
-| -------------------------- | ---------------------------------------------------------------------------------------------- |
-| Send input to server       | $2 * 8 = 16$                                                                                   |
-| Inter-server communication | $\|\Sigma\| * \|S\| * \lceil\log_{2}{\|\Sigma\|}\rceil * 10 = 256 * 1024 * 10 * 10 = 26214400$ |
-| Total                      | $16 + 26214400 = 26214416$                                                                     |
+| Action                     | Bits                                                                                       |
+| -------------------------- | ------------------------------------------------------------------------------------------ |
+| Send input to server       | $2\lceil\log_{2}{\|\Sigma\|}\rceil = 2 * 8 = 16$                                           |
+| Inter-server communication | $\|\Sigma\| * \|S\| * \lceil\log_{2}{\|\Sigma\|}\rceil * 10 = 256 * 1024 * 100 = 26214400$ |
+| Total                      | $16 + 26214400 = 26214416$                                                                 |
 
 ## Private State Machine: Optimised Protocol
 
@@ -149,9 +177,9 @@ Similar to the naive protocol, we will be running a state machine on remote serv
 
 ### Communication: Send Input
 
-Instead of sending a share of the input to each server, we will send a DPF key to each server where the input is the point at which the function is 1. See [this notebook](https://github.com/Blake-Haydon/Distributed-Point-Functions/blob/main/naive_DPF_single_bit.ipynb) for an example of a single bit PDF. The diagram below shows the communication between Charlie, Alice and Bob.
+Instead of sending a share of the input to each server, we will send a DPF key to each server where the input is the point at which the function is 1. See [this notebook](https://github.com/Blake-Haydon/Distributed-Point-Functions/blob/main/naive_DPF_single_bit.ipynb) for an example of a single bit DPF. The diagram below shows the communication between Charlie, Alice and Bob.
 
-<!-- TODO: put DPF size here. The size is found in the paper "Distributed Point Functions and Their Applications" -->
+<!-- TODO: put DPF size here. The size is found in the paper "Distributed Point Functions and Their Applications"**** -->
 
 ```
                  ┌──────────────────┐
@@ -166,10 +194,33 @@ DPF Key 0 │                                │ DPF Key 1
 
 ### Communication: Compute Next State
 
+In order to compute the next state Alice and Bob must use their current state shares as well as the DPF keys. Alice and Bob use MPC to compute the multilinear polynomial. See [this notebook](./optimised_private_state_machine.ipynb) for an example multilinear polynomial representing the transition function $f_a(s)$ (where $a$ is the input and $s$ is the current state). We will complete this MPC computation by using Beavers triples for multiplication. We will assume that these triples are supplied by a trusted third party.
+
+1. Receive precomputed triples from a trusted party
+   ```
+                     ┌───────────────────────┐
+                 ┌───┤ Trent (trusted party) ├────┐
+                 │   └───────────────────────┘    │
+                 │                                │
+   Beaver Triple │                                │  Beaver Triple
+                 │                                │
+        ┌────────▼─────────┐             ┌────────▼───────┐
+        │ Alice (server 0) │             │ Bob (server 1) │
+        └──────────────────┘             └────────────────┘
+   ```
+2. Compute the following powers of the current shared state $s$ using the triples (for this example we have to compute $1024$ powers):
+   $$s^0 = 1$$
+   $$s^{n+1} = s^n * s$$
+3. Using the powers of $s$ shares from the previous step, we will compute $f_a(s)$ for all $a$ values. In this example we will be evaluating $256$ polynomial functions. Because we are multiplying by constants and doing addition on terms, this step requires no communication between servers.
+4. For each polynomial function we must compute $f_a(s) * DPF.Eval(k, a)$, where k is the DPF key and $a$ is the input. Because Alice and Bob both have DPF keys, we have to complete two MPC multiplications. We will use the triples from the previous step to compute these multiplications. Therefore Alice and Bob must compute (where Alice holds the DPF key $k_0$ and Bob holds the DPF key $k_1$):
+   $$\sum_{a=0}^{255}{f_a(s) * DPF.Eval(k_0, a)} + \sum_{a=0}^{255}{f_a(s) * DPF.Eval(k_1, a)}$$
+
+Using the previous analysis on the [communication cost of a multiplication](#communication-cost-of-a-multiplication) we are assuming 100 bits are sent over the wire for every multiplication. Therefore the total communication required to compute the next state share is just the number of multiplications to compute the powers of $s$ and evaluate the DPF. To compute powers of $s$ we have $|S|$ multiplications, thus communication cost is $|S| * 100 = 104800$. To evaluate the DPF we have $2 * |\Sigma|$ multiplications, thus communication cost is $2 * |\Sigma| * 100 = 51200$. Therefore the total communication cost is $104800 + 51200 = 156000$ bits which is approximately 0.0195 megabytes.
+
 ### Results
 
-| Action                     | Bits                                                                                     |
-| -------------------------- | ---------------------------------------------------------------------------------------- |
-| Send input to server       | $2 * \|\Sigma\| = 2 * 256 = 512$ **(TODO: THIS IS NAIVE, CHANGE TO OPTIMISED DPF KEYS)** |
-| Inter-server communication | $...$                                                                                    |
-| Total                      | $512 + ... = ...$                                                                        |
+| Action                     | Bits                                                                                  |
+| -------------------------- | ------------------------------------------------------------------------------------- |
+| Send input to server       | $2\|\Sigma\| = 2 * 256 = 512$ **(TODO: THIS IS NAIVE, CHANGE TO OPTIMISED DPF KEYS)** |
+| Inter-server communication | $\|S\| + 2\|\Sigma\| = 156000$                                                        |
+| Total                      | $512 + 156000 = 156512$                                                               |
