@@ -21,6 +21,16 @@ The following diagram shows the communication between 2 servers and 1 client. In
 - **Private State**: Alice and Bob do not know the current state.
 - **Private Input**: Alice and Bob do not know the input.
 
+## **Communication Analysis**
+
+Both the naive and optimised protocols have been analyzed for their communication costs. The following table shows the number of messages that are sent between each participant in the protocol. See full writeup [here](./communication_analysis.md)
+
+| Communication Type | State Machine Bits | Naive Protocol Bits     | Optimised Protocol Bits |
+| ------------------ | ------------------ | ----------------------- | ----------------------- |
+| Send Input         | $8$                | $16$ (x2)               | $512$ (x64)             |
+| Compute Next State | $0$                | $26214400$              | $156000$                |
+| Total              | $8$                | $26214416$ (x3,276,802) | $156512$ (x19,564)      |
+
 ## **Notebooks**
 
 - [Naive Private State Machine](./naive_private_state_machine.ipynb)
