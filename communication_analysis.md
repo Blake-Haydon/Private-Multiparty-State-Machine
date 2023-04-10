@@ -41,36 +41,27 @@ In this example we will be running a state machine on a remote server called Ali
 
 Input is sent from Charlie to Alice in plaintext. Because the input is simply from the set $\Sigma$, the input will be $8$ bits long.
 
-```
-┌──────────────────┐
-│ Charlie (client) │
-└────────┬─────────┘
-         │
-         │
-         │ Input Token
-         │
-         │
-┌────────▼───────┐
-│ Alice (server) │
-└────────────────┘
+```mermaid
+graph LR
+    subgraph Client
+        Charlie((Charlie))
+    end
+    subgraph Server
+        Alice((Alice))
+    end
+    Charlie -- Input Token --> Alice
 ```
 
 ### Communication: Compute Next State
 
 In order to compute the next state Alice needs to know the current state and the input. Alice will then compute the next state locally. Because this computation is done locally, no communication is required.
 
-```
-┌──────────────────┐
-│ Charlie (client) │
-└──────────────────┘
-
-
-NO COMMUNICATION FOR NEXT STATE COMPUTATION
-
-
-┌────────────────┐
-│ Alice (server) │
-└────────────────┘
+```mermaid
+graph LR
+    subgraph Server
+        Alice((Alice))
+    end
+    Alice -- Current State + Input --> Alice
 ```
 
 ### Results
@@ -89,17 +80,17 @@ In this example we will be running a state machine on remote servers called Alic
 
 When sending the input token $a$ the servers, charlie will generate shares $a_0$ and $a_1$ such that $a = a_0 + a_1$. The share $a_0$ will be sent to Alice the share $a_1$ will be sent to Bob. Because the input shares are from is from the set $\Sigma$, the input shares will be $8$ bits long.
 
-```
-                     ┌──────────────────┐
-              ┌──────┤ Charlie (client) ├──────┐
-              │      └──────────────────┘      │
-              │                                │
-Input Share 0 │                                │ Input Share 1
-              │                                │
-              │                                │
-     ┌────────▼─────────┐             ┌────────▼───────┐
-     │ Alice (server 0) │             │ Bob (server 1) │
-     └──────────────────┘             └────────────────┘
+```mermaid
+flowchart LR
+  subgraph Client
+   Charlie((Charlie))
+  end
+  subgraph Servers
+   Alice((Alice))
+   Bob((Bob))
+  end
+  Charlie -- Input Share 0 --> Alice
+  Charlie -- Input Share 1 --> Bob
 ```
 
 ### Communication: Compute Next State
@@ -109,23 +100,68 @@ In order to compute the next state Alice and Bob must use their current state sh
 To evaluate the next multilinear polynomial Alice and Bob must:
 
 1. Receive precomputed triples from a trusted party
-   ```
-                     ┌───────────────────────┐
-                 ┌───┤ Trent (trusted party) ├────┐
-                 │   └───────────────────────┘    │
-                 │                                │
-   Beaver Triple │                                │  Beaver Triple
-                 │                                │
-        ┌────────▼─────────┐             ┌────────▼───────┐
-        │ Alice (server 0) │             │ Bob (server 1) │
-        └──────────────────┘             └────────────────┘
-   ```
+
+```mermaid
+flowchart LR
+   subgraph TrustedParty[Trusted Party]
+      Trent((Trent))
+   end
+   subgraph Servers
+      Alice((Alice))
+      Bob((Bob))
+   end
+ Trent -- Beaver Triple --> Alice
+ Trent -- Beaver Triple --> Bob
+```
+
 2. Compute the following powers of the current shared state $s$ using the triples (for this example we have to compute $1024$ powers):
    $$s^0 = 1$$
    $$s^{n+1} = s^n * s$$
+
+   A visual example of the circuit used to compute this recurrence relation shown below. Please note the we will not stop at $s^{3}$ as shown in the diagram, instead this pattern will continue for $1024$ iterations.
+
+```mermaid
+graph TB
+ A[s]
+ B[s]
+ C[s]
+ AB[s<sup>2</sup>]
+ ABC[s<sup>3</sup>]
+ M1[\Multiplication Gate/]
+ M2[\Multiplication Gate/]
+ A  --> M1
+ AB --> M2
+ C --> M2
+ B --> M1
+ M1 --> AB
+ M2 --> ABC
+ ABC
+```
+
 3. Compute the following powers of the input share $a$ using the triples (for this example we have to compute $256$ powers):
    $$a^0 = 1$$
    $$a^{n+1} = a^n * a$$
+
+   A visual example of the circuit used to compute this recurrence relation shown below. Please note the we will not stop at $a^{3}$ as shown in the diagram, instead this pattern will continue for $256$ iterations.
+
+```mermaid
+graph TB
+ A[a]
+ B[a]
+ C[a]
+ AB[a<sup>2</sup>]
+ ABC[a<sup>3</sup>]
+ M1[\Multiplication Gate/]
+ M2[\Multiplication Gate/]
+ A  --> M1
+ AB --> M2
+ C --> M2
+ B --> M1
+ M1 --> AB
+ M2 --> ABC
+ ABC
+```
+
 4. Combine the powers of the input and state shares to form the multilinear polynomial. This multiplication is completed using triples once again. The following table shows how the powers of the input and state shares are combined.
    | | $a^0$ | $a^1$ | ... | $a^{254}$ | $a^{255}$ |
    | ---------- | ------------- | ------------- | --- | ----------------- | ----------------- |
@@ -135,17 +171,16 @@ To evaluate the next multilinear polynomial Alice and Bob must:
    | $s^{1022}$ | $a^0s^{1022}$ | $a^1s^{1022}$ | ... | $a^{254}s^{1022}$ | $a^{255}s^{1022}$ |
    | $s^{1023}$ | $a^0s^{1023}$ | $a^1s^{1023}$ | ... | $a^{254}s^{1023}$ | $a^{255}s^{1023}$ |
 5. The multilinear polynomial is evaluated using the table above multiplied by the coefficients of all of the multilinear polynomial. The result will be the next state share. The diagram below shows the communication between Alice and Bob. When computing the next state share.
-   ```
-                      State + Input Share
-            ┌────────────────────────────────┐
-            │                                │
-   ┌────────┴─────────┐             ┌────────▼───────┐
-   │ Alice (server 0) │             │ Bob (server 1) │
-   └────────▲─────────┘             └────────┬───────┘
-            │                                │
-            └────────────────────────────────┘
-                      State + Input Share
-   ```
+
+```mermaid
+flowchart LR
+subgraph Servers
+   Alice((Alice))
+   Bob((Bob))
+end
+Bob -- State Share + Input Share --> Alice
+Alice -- State Share + Input Share --> Bob
+```
 
 #### Communication cost of a multiplication
 
@@ -181,15 +216,17 @@ Instead of sending a share of the input to each server, we will send a DPF key t
 
 <!-- TODO: put DPF size here. The size is found in the paper "Distributed Point Functions and Their Applications"**** -->
 
-```
-                 ┌──────────────────┐
-          ┌──────┤ Charlie (client) ├──────┐
-          │      └──────────────────┘      │
-DPF Key 0 │                                │ DPF Key 1
-          │                                │
- ┌────────▼─────────┐             ┌────────▼───────┐
- │ Alice (server 0) │             │ Bob (server 1) │
- └──────────────────┘             └────────────────┘
+```mermaid
+flowchart LR
+  subgraph Client
+   Charlie((Charlie))
+  end
+  subgraph Servers
+   Alice((Alice))
+   Bob((Bob))
+  end
+  Charlie -- DPF Key 0 --> Alice
+  Charlie -- DPF Key 1 --> Bob
 ```
 
 ### Communication: Compute Next State
@@ -197,17 +234,20 @@ DPF Key 0 │                                │ DPF Key 1
 In order to compute the next state Alice and Bob must use their current state shares as well as the DPF keys. Alice and Bob use MPC to compute the multilinear polynomial. See [this notebook](./optimised_private_state_machine.ipynb) for an example multilinear polynomial representing the transition function $f_a(s)$ (where $a$ is the input and $s$ is the current state). We will complete this MPC computation by using Beavers triples for multiplication. We will assume that these triples are supplied by a trusted third party.
 
 1. Receive precomputed triples from a trusted party
-   ```
-                     ┌───────────────────────┐
-                 ┌───┤ Trent (trusted party) ├────┐
-                 │   └───────────────────────┘    │
-                 │                                │
-   Beaver Triple │                                │  Beaver Triple
-                 │                                │
-        ┌────────▼─────────┐             ┌────────▼───────┐
-        │ Alice (server 0) │             │ Bob (server 1) │
-        └──────────────────┘             └────────────────┘
-   ```
+
+```mermaid
+flowchart LR
+   subgraph TrustedParty[Trusted Party]
+      Trent((Trent))
+   end
+   subgraph Servers
+      Alice((Alice))
+      Bob((Bob))
+   end
+ Trent -- Beaver Triple --> Alice
+ Trent -- Beaver Triple --> Bob
+```
+
 2. Compute the following powers of the current shared state $s$ using the triples (for this example we have to compute $1024$ powers):
    $$s^0 = 1$$
    $$s^{n+1} = s^n * s$$
