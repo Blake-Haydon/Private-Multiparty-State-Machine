@@ -12,7 +12,11 @@ The goal of the protocol is to run a private [state machine](https://en.wikipedi
 
 The following diagram shows the communication between 2 servers and 1 client. In the protocol Charlie is the client and Alice and Bob are the servers. Charlie has no knowledge of the state machine that is being run whereas Alice and Bob do. Charlie continually sends inputs to Alice and Bob, causing the private state machine to transition.
 
-![Basic Participants Overview](./images/basic_overview.png)
+```mermaid
+flowchart TD
+    Charlie("Charlie (Client)") -- Token Share \n T0 --> Alice("Charlie (Server 0)")
+    Charlie -- Token Share \n T1 --> Bob("Charlie (Server 1)")
+```
 
 ### **Privacy Properties**
 
