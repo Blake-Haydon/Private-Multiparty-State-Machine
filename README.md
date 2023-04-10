@@ -13,9 +13,16 @@ The goal of the protocol is to run a private [state machine](https://en.wikipedi
 The following diagram shows the communication between 2 servers and 1 client. In the protocol Charlie is the client and Alice and Bob are the servers. Charlie has no knowledge of the state machine that is being run whereas Alice and Bob do. Charlie continually sends inputs to Alice and Bob, causing the private state machine to transition.
 
 ```mermaid
-flowchart TD
-    Charlie("Charlie (Client)") -- Token Share \n T0 --> Alice("Charlie (Server 0)")
-    Charlie -- Token Share \n T1 --> Bob("Charlie (Server 1)")
+flowchart LR
+  subgraph Client
+   Charlie((Charlie))
+  end
+  subgraph Servers
+   Alice((Alice))
+   Bob((Bob))
+  end
+  Charlie -- Input Share 0 --> Alice
+  Charlie -- Input Share 1 --> Bob
 ```
 
 ### **Privacy Properties**
@@ -27,7 +34,9 @@ flowchart TD
 
 ## **Communication Analysis**
 
-Both the naive and optimised protocols have been analyzed for their communication costs. The following table shows the number of messages that are sent between each participant in the protocol. See full writeup [here](./communication_analysis.md)
+> **INFO**: [Click here to see full analysis](./communication_analysis.md)
+
+Both the naive and optimised protocols have been analyzed for their communication costs. The following table shows the number of messages that are sent between each participant in the protocol.
 
 | Communication Type | State Machine Bits | Naive Protocol Bits   | Optimised Protocol Bits |
 | ------------------ | ------------------ | --------------------- | ----------------------- |
