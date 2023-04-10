@@ -100,41 +100,43 @@ In order to compute the next state Alice and Bob must use their current state sh
 To evaluate the next multilinear polynomial Alice and Bob must:
 
 1. Receive precomputed triples from a trusted party
-   ```mermaid
-   flowchart LR
-      subgraph TrustedParty[Trusted Party]
-         Trent((Trent))
-      end
-      subgraph Servers
-         Alice((Alice))
-         Bob((Bob))
-      end
-    Trent -- Beaver Triple --> Alice
-    Trent -- Beaver Triple --> Bob
-   ```
+
+```mermaid
+flowchart LR
+   subgraph TrustedParty[Trusted Party]
+      Trent((Trent))
+   end
+   subgraph Servers
+      Alice((Alice))
+      Bob((Bob))
+   end
+ Trent -- Beaver Triple --> Alice
+ Trent -- Beaver Triple --> Bob
+```
+
 2. Compute the following powers of the current shared state $s$ using the triples (for this example we have to compute $1024$ powers):
    $$s^0 = 1$$
    $$s^{n+1} = s^n * s$$
 
    A visual example of the circuit used to compute this recurrence relation shown below. Please note the we will not stop at $s^{3}$ as shown in the diagram, instead this pattern will continue for $1024$ iterations.
 
-   ```mermaid
-   graph TB
-    A[s]
-    B[s]
-    C[s]
-    AB[s<sup>2</sup>]
-    ABC[s<sup>3</sup>]
-    M1[\Multiplication Gate/]
-    M2[\Multiplication Gate/]
-    A  --> M1
-    AB --> M2
-    C --> M2
-    B --> M1
-    M1 --> AB
-    M2 --> ABC
-    ABC
-   ```
+```mermaid
+graph TB
+ A[s]
+ B[s]
+ C[s]
+ AB[s<sup>2</sup>]
+ ABC[s<sup>3</sup>]
+ M1[\Multiplication Gate/]
+ M2[\Multiplication Gate/]
+ A  --> M1
+ AB --> M2
+ C --> M2
+ B --> M1
+ M1 --> AB
+ M2 --> ABC
+ ABC
+```
 
 3. Compute the following powers of the input share $a$ using the triples (for this example we have to compute $256$ powers):
    $$a^0 = 1$$
@@ -142,23 +144,23 @@ To evaluate the next multilinear polynomial Alice and Bob must:
 
    A visual example of the circuit used to compute this recurrence relation shown below. Please note the we will not stop at $a^{3}$ as shown in the diagram, instead this pattern will continue for $256$ iterations.
 
-   ```mermaid
-   graph TB
-    A[a]
-    B[a]
-    C[a]
-    AB[a<sup>2</sup>]
-    ABC[a<sup>3</sup>]
-    M1[\Multiplication Gate/]
-    M2[\Multiplication Gate/]
-    A  --> M1
-    AB --> M2
-    C --> M2
-    B --> M1
-    M1 --> AB
-    M2 --> ABC
-    ABC
-   ```
+```mermaid
+graph TB
+ A[a]
+ B[a]
+ C[a]
+ AB[a<sup>2</sup>]
+ ABC[a<sup>3</sup>]
+ M1[\Multiplication Gate/]
+ M2[\Multiplication Gate/]
+ A  --> M1
+ AB --> M2
+ C --> M2
+ B --> M1
+ M1 --> AB
+ M2 --> ABC
+ ABC
+```
 
 4. Combine the powers of the input and state shares to form the multilinear polynomial. This multiplication is completed using triples once again. The following table shows how the powers of the input and state shares are combined.
    | | $a^0$ | $a^1$ | ... | $a^{254}$ | $a^{255}$ |
@@ -169,15 +171,16 @@ To evaluate the next multilinear polynomial Alice and Bob must:
    | $s^{1022}$ | $a^0s^{1022}$ | $a^1s^{1022}$ | ... | $a^{254}s^{1022}$ | $a^{255}s^{1022}$ |
    | $s^{1023}$ | $a^0s^{1023}$ | $a^1s^{1023}$ | ... | $a^{254}s^{1023}$ | $a^{255}s^{1023}$ |
 5. The multilinear polynomial is evaluated using the table above multiplied by the coefficients of all of the multilinear polynomial. The result will be the next state share. The diagram below shows the communication between Alice and Bob. When computing the next state share.
-   ```mermaid
-   flowchart LR
-   subgraph Servers
-      Alice((Alice))
-      Bob((Bob))
-   end
-   Bob -- State Share + Input Share --> Alice
-   Alice -- State Share + Input Share --> Bob
-   ```
+
+```mermaid
+flowchart LR
+subgraph Servers
+   Alice((Alice))
+   Bob((Bob))
+end
+Bob -- State Share + Input Share --> Alice
+Alice -- State Share + Input Share --> Bob
+```
 
 #### Communication cost of a multiplication
 
@@ -231,18 +234,20 @@ flowchart LR
 In order to compute the next state Alice and Bob must use their current state shares as well as the DPF keys. Alice and Bob use MPC to compute the multilinear polynomial. See [this notebook](./optimised_private_state_machine.ipynb) for an example multilinear polynomial representing the transition function $f_a(s)$ (where $a$ is the input and $s$ is the current state). We will complete this MPC computation by using Beavers triples for multiplication. We will assume that these triples are supplied by a trusted third party.
 
 1. Receive precomputed triples from a trusted party
-   ```mermaid
-   flowchart LR
-      subgraph TrustedParty[Trusted Party]
-         Trent((Trent))
-      end
-      subgraph Servers
-         Alice((Alice))
-         Bob((Bob))
-      end
-    Trent -- Beaver Triple --> Alice
-    Trent -- Beaver Triple --> Bob
-   ```
+
+```mermaid
+flowchart LR
+   subgraph TrustedParty[Trusted Party]
+      Trent((Trent))
+   end
+   subgraph Servers
+      Alice((Alice))
+      Bob((Bob))
+   end
+ Trent -- Beaver Triple --> Alice
+ Trent -- Beaver Triple --> Bob
+```
+
 2. Compute the following powers of the current shared state $s$ using the triples (for this example we have to compute $1024$ powers):
    $$s^0 = 1$$
    $$s^{n+1} = s^n * s$$
