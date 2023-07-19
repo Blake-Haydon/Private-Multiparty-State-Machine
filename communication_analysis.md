@@ -261,6 +261,6 @@ Using the previous analysis on the [communication cost of a multiplication](#com
 
 | Action                     | Bits                                                                                  |
 | -------------------------- | ------------------------------------------------------------------------------------- |
-| Send input to server       | $2\|\Sigma\| = 2 * 256 = 512$ **(TODO: THIS IS NAIVE, CHANGE TO OPTIMISED DPF KEYS)** |
+| Send input to server       | $2\|\Sigma\| = 2 * 256 = 512$                                                         |
 | Inter-server communication | $\|S\| + 2\|\Sigma\| = 156000$                                                        |
 | Total                      | $512 + 156000 = 156512$                                                               |
